@@ -1,13 +1,13 @@
-# Customer Service Agents Demo
+# EsencIA - Customer Service Agents Demo
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 ![NextJS](https://img.shields.io/badge/Built_with-NextJS-blue)
-![OpenAI API](https://img.shields.io/badge/Powered_by-OpenAI_API-orange)
+![Gemini API](https://img.shields.io/badge/Powered_by-Gemini_API-blue)
 
-This repository contains a demo of a Customer Service Agent interface built on top of the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/).
+This repository contains a demo of a Customer Service Agent interface built on top of the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) but **powered by Google's Gemini AI**.
 It is composed of two parts:
 
-1. A python backend that handles the agent orchestration logic, implementing the Agents SDK [customer service example](https://github.com/openai/openai-agents-python/tree/main/examples/customer_service)
+1. A python backend that handles the agent orchestration logic, implementing the Agents SDK [customer service example](https://github.com/openai/openai-agents-python/tree/main/examples/customer_service) with **Gemini models**
 
 2. A Next.js UI allowing the visualization of the agent orchestration process and providing a chat interface.
 
@@ -15,17 +15,19 @@ It is composed of two parts:
 
 ## How to use
 
-### Setting your OpenAI API key
+### Setting your Gemini API key
 
-You can set your OpenAI API key in your environment variables by running the following command in your terminal:
+You can set your Gemini API key in your environment variables by running the following command in your terminal:
 
 ```bash
-export OPENAI_API_KEY=your_api_key
+export GEMINI_API_KEY=your_api_key
 ```
 
-You can also follow [these instructions](https://platform.openai.com/docs/libraries#create-and-export-an-api-key) to set your OpenAI key at a global level.
+You can get your Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
 
-Alternatively, you can set the `OPENAI_API_KEY` environment variable in an `.env` file at the root of the `python-backend` folder. You will need to install the `python-dotenv` package to load the environment variables from the `.env` file.
+Alternatively, you can set the `GEMINI_API_KEY` environment variable in an `.env` file at the root of the `python-backend` folder. You will need to install the `python-dotenv` package to load the environment variables from the `.env` file.
+
+**Note:** While this project uses Gemini for AI inference, it still requires the OpenAI Python package as a dependency of the openai-agents library.
 
 ### Install dependencies
 
@@ -34,8 +36,9 @@ Install the dependencies for the backend by running the following commands:
 ```bash
 cd python-backend
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+pip install "openai==1.97.1"  # Required for compatibility with openai-agents
 ```
 
 For the UI, you can run:
@@ -54,6 +57,8 @@ You can either run the backend independently if you want to use a separate UI, o
 From the `python-backend` folder, run:
 
 ```bash
+# Set your Gemini API key first
+export GEMINI_API_KEY=your_gemini_api_key_here  # On Windows: $env:GEMINI_API_KEY="your_key"
 python -m uvicorn api:app --reload --port 8000
 ```
 
@@ -70,6 +75,28 @@ npm run dev
 The frontend will be available at: [http://localhost:3000](http://localhost:3000)
 
 This command will also start the backend.
+
+## What's Changed from the Original
+
+### ✅ **Maintained Features:**
+- All original agent functionality (Triage, FAQ, Seat Booking, Flight Status, Cancellation)
+- Complete agent orchestration and handoff logic
+- Input guardrails (Relevance and Jailbreak detection)
+- FastAPI backend with CORS support
+- Next.js frontend interface
+- Interactive seat map functionality
+- All demo flows and conversation patterns
+
+### 🔄 **Key Changes:**
+- **AI Model**: Switched from OpenAI GPT models to **Google Gemini 2.0 Flash Lite**
+- **API Configuration**: Updated all agents to use `LitellmModel` with Gemini
+- **Environment Variables**: Changed from `OPENAI_API_KEY` to `GEMINI_API_KEY`
+- **Dependencies**: Added specific OpenAI package version (1.97.1) for compatibility
+
+### 🚀 **Benefits:**
+- **Cost-effective**: Gemini offers competitive pricing
+- **Performance**: Fast response times with Gemini 2.0 Flash Lite
+- **Reliability**: Maintained all original functionality while using a different AI provider
 
 ## Customization
 
