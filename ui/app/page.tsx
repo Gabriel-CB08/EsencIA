@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AgentPanel } from "@/components/agent-panel";
-import { Chat } from "@/components/chat";
+import { Chat } from "@/components/Chat";
 import type { Agent, AgentEvent, GuardrailCheck, Message } from "@/lib/types";
 import { callChatAPI } from "@/lib/api";
 
@@ -47,14 +47,20 @@ export default function Home() {
 
   // Send a user message
   const handleSendMessage = async (content: string) => {
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      content,
-      role: "user",
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
+    // Only show user message if it's not an image upload or simple greeting
+    const isImageUpload = content.includes("data:image");
+    const isSimpleGreeting = content.trim().toLowerCase().length < 20;
+    
+    if (!isImageUpload && !isSimpleGreeting) {
+      const userMsg: Message = {
+        id: Date.now().toString(),
+        content,
+        role: "user",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMsg]);
+    }
+    
     setIsLoading(true);
 
     const data = await callChatAPI(content, conversationId ?? "");

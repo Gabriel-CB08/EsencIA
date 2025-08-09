@@ -5,6 +5,72 @@ import type { Message } from "@/lib/types";
 import ReactMarkdown from "react-markdown";
 import { SeatMap } from "./seat-map";
 
+// Component to render color swatches
+const ColorSwatch = ({ name, hex, category, reason }: { name: string; hex: string; category: string; reason: string }) => (
+  <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition-all duration-200">
+    <div 
+      className="w-16 h-16 rounded-xl border-3 border-white shadow-lg flex-shrink-0 ring-2 ring-gray-200"
+      style={{ backgroundColor: hex }}
+      title={`${name} (${hex})`}
+    />
+    <div className="flex-1">
+      <div className="font-bold text-gray-900 text-lg">{name}</div>
+      <div className="text-sm font-medium text-purple-600 uppercase tracking-wide">{category}</div>
+      <div className="text-sm text-gray-700 mt-1 font-mono">{hex}</div>
+      <div className="text-sm text-gray-600 mt-2 italic">{reason}</div>
+    </div>
+  </div>
+);
+
+// Enhanced markdown renderer with color swatch support
+const ColorimetryMarkdown = ({ content }: { content: string }) => {
+  // Parse color recommendations from markdown
+  const parseColors = (text: string) => {
+    const colorRegex = /- \*\*([^*]+)\*\* \(([^)]+)\) - ([^:]+): (.+)/g;
+    const colors = [];
+    let match;
+    
+    while ((match = colorRegex.exec(text)) !== null) {
+      colors.push({
+        name: match[1],
+        hex: match[2],
+        category: match[3],
+        reason: match[4]
+      });
+    }
+    
+    return colors;
+  };
+
+  const colors = parseColors(content);
+  
+  // If we have color recommendations, render them specially
+  if (colors.length > 0) {
+    const beforeColors = content.split("**Perfect Colors for You:**")[0];
+    const afterColors = content.split("*These recommendations are based on")[1];
+    
+    return (
+      <div>
+        <ReactMarkdown>{beforeColors}</ReactMarkdown>
+        <div className="my-4">
+          <h3 className="font-semibold text-gray-900 mb-3">Perfect Colors for You:</h3>
+          <div className="grid gap-3">
+            {colors.map((color, idx) => (
+              <ColorSwatch key={idx} {...color} />
+            ))}
+          </div>
+        </div>
+        {afterColors && (
+          <ReactMarkdown>{`*These recommendations are based on${afterColors}`}</ReactMarkdown>
+        )}
+      </div>
+    );
+  }
+  
+  // Default markdown rendering
+  return <ReactMarkdown>{content}</ReactMarkdown>;
+};
+
 interface ChatProps {
   messages: Message[];
   onSendMessage: (message: string) => void;
@@ -119,7 +185,7 @@ export function Chat({ messages, onSendMessage, isLoading }: ChatProps) {
                 </div>
               ) : (
                 <div className="mr-4 rounded-[16px] rounded-bl-[4px] px-4 py-2 md:mr-24 text-zinc-900 bg-[#ECECF1] font-light max-w-[80%]">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  <ColorimetryMarkdown content={msg.content} />
                 </div>
               )}
             </div>
