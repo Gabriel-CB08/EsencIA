@@ -7,11 +7,7 @@ import time
 import logging
 
 from main import (
-    triage_agent,
-    faq_agent,
-    seat_booking_agent,
-    flight_status_agent,
-    cancellation_agent,
+    colorimetry_agent,
     create_initial_context,
 )
 
@@ -108,13 +104,9 @@ conversation_store = InMemoryConversationStore()
 def _get_agent_by_name(name: str):
     """Return the agent object by name."""
     agents = {
-        triage_agent.name: triage_agent,
-        faq_agent.name: faq_agent,
-        seat_booking_agent.name: seat_booking_agent,
-        flight_status_agent.name: flight_status_agent,
-        cancellation_agent.name: cancellation_agent,
+        colorimetry_agent.name: colorimetry_agent,
     }
-    return agents.get(name, triage_agent)
+    return agents.get(name, colorimetry_agent)
 
 def _get_guardrail_name(g) -> str:
     """Extract a friendly guardrail name."""
@@ -140,11 +132,7 @@ def _build_agents_list() -> List[Dict[str, Any]]:
             "input_guardrails": [_get_guardrail_name(g) for g in getattr(agent, "input_guardrails", [])],
         }
     return [
-        make_agent_dict(triage_agent),
-        make_agent_dict(faq_agent),
-        make_agent_dict(seat_booking_agent),
-        make_agent_dict(flight_status_agent),
-        make_agent_dict(cancellation_agent),
+        make_agent_dict(colorimetry_agent),
     ]
 
 # =========================
@@ -162,11 +150,12 @@ async def chat_endpoint(req: ChatRequest):
     if is_new:
         conversation_id: str = uuid4().hex
         ctx = create_initial_context()
-        current_agent_name = triage_agent.name
+        current_agent_name = colorimetry_agent.name
         state: Dict[str, Any] = {
             "input_items": [],
             "context": ctx,
             "current_agent": current_agent_name,
+            "context_type": "colorimetry",  # Track context type
         }
         if req.message.strip() == "":
             conversation_store.save(conversation_id, state)

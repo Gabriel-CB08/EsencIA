@@ -18,6 +18,9 @@ export function Chat({ messages, onSendMessage, isLoading }: ChatProps) {
   const [isComposing, setIsComposing] = useState(false);
   const [showSeatMap, setShowSeatMap] = useState(false);
   const [selectedSeat, setSelectedSeat] = useState<string | undefined>(undefined);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom when messages or loading indicator change
   useEffect(() => {
@@ -49,6 +52,39 @@ export function Chat({ messages, onSendMessage, isLoading }: ChatProps) {
     },
     [onSendMessage]
   );
+
+  const handleImageSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagePreview(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
+
+  const handleImageUpload = useCallback(async () => {
+    if (!selectedImage) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Data = event.target?.result as string;
+      onSendMessage(`I'd like to analyze my image for color recommendations. Here's my image: ${base64Data}`);
+      setSelectedImage(null);
+      setImagePreview(null);
+    };
+    reader.readAsDataURL(selectedImage);
+  }, [selectedImage, onSendMessage]);
+
+  const removeImage = useCallback(() => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -109,6 +145,32 @@ export function Chat({ messages, onSendMessage, isLoading }: ChatProps) {
 
       {/* Input area */}
       <div className="p-2 md:px-4">
+        {/* Image preview */}
+        {imagePreview && (
+          <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Selected Image:</span>
+              <button
+                onClick={removeImage}
+                className="text-red-500 hover:text-red-700 text-sm"
+              >
+                Remove
+              </button>
+            </div>
+            <img 
+              src={imagePreview} 
+              alt="Preview" 
+              className="max-h-32 rounded border"
+            />
+            <button
+              onClick={handleImageUpload}
+              className="mt-2 px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors"
+            >
+              Send for Color Analysis
+            </button>
+          </div>
+        )}
+        
         <div className="flex items-center">
           <div className="flex w-full items-center pb-4 md:pb-1">
             <div className="flex w-full flex-col gap-1.5 rounded-2xl p-2.5 pl-1.5 bg-white border border-stone-200 shadow-sm transition-colors">
@@ -119,7 +181,7 @@ export function Chat({ messages, onSendMessage, isLoading }: ChatProps) {
                     tabIndex={0}
                     dir="auto"
                     rows={2}
-                    placeholder="Message..."
+                    placeholder="Upload an image for personalized color analysis (women aged 18-35)..."
                     className="mb-2 resize-none border-0 focus:outline-none text-sm bg-transparent px-0 pb-6 pt-2"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
@@ -128,6 +190,37 @@ export function Chat({ messages, onSendMessage, isLoading }: ChatProps) {
                     onCompositionEnd={() => setIsComposing(false)}
                   />
                 </div>
+                
+                {/* Image upload button */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-600 text-white hover:opacity-70 transition-colors focus:outline-none"
+                  title="Upload image for color analysis"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </button>
+                
                 <button
                   disabled={!inputText.trim()}
                   className="flex h-8 w-8 items-end justify-center rounded-full bg-black text-white hover:opacity-70 disabled:bg-gray-300 disabled:text-gray-400 transition-colors focus:outline-none"
